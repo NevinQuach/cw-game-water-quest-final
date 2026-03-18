@@ -38,8 +38,6 @@ function spawnWaterCan() {
   `;
 }
 
-
-
 // Score System
 const score = document.getElementById('current-cans');
 
@@ -52,7 +50,6 @@ document.querySelector('.game-grid').addEventListener('click', function(event) {
   if (currentScore >= cangoal) {
     endGame();
   }
-
 });
 
 // Initializes and starts a new game
