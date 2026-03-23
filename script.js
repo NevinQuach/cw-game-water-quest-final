@@ -1,14 +1,88 @@
-// Game configuration and state variables
-const GOAL_CANS = 25;        // Total items needed to collect
-let currentCans = 0;         // Current number of items collected
-let gameActive = false;      // Tracks if game is currently running
-let spawnInterval;          // Holds the interval for spawning items
-let timerInterval;          // Holds the interval for timer countdown
+// ===== Game Settings =====
+const DIFFICULTY_SETTINGS = {
+  easy: {
+    goalCans: 15,
+    startTimeSeconds: 30,
+    spawnRateMs: 1250,
+  },
+  medium: {
+    goalCans: 20,
+    startTimeSeconds: 25,
+    spawnRateMs: 1000,
+  },
+  hard: {
+    goalCans: 25,
+    startTimeSeconds: 20,
+    spawnRateMs: 750,
+  },
+};
 
-// Water can fade-out animation and removal
+// ===== Cached DOM Elements =====
+const grid = document.querySelector('.game-grid');
+const scoreEl = document.getElementById('current-cans');
+const timerEl = document.getElementById('timer');
+const endMessageHolderEl = document.querySelector('.endgamemessageholder');
+const endMessageEl = document.getElementById('endgamemessage');
+const startButton = document.getElementById('start-game');
+const difficultySelect = document.getElementById('difficulty');
+const instructionsEl = document.querySelector('.game-instructions');
+
+// ===== Game State =====
+let isGameRunning = false;
+let score = 0;
+let selectedDifficulty = difficultySelect?.value || 'medium';
+let currentGoalCans = DIFFICULTY_SETTINGS[selectedDifficulty].goalCans;
+let timeLeft = DIFFICULTY_SETTINGS[selectedDifficulty].startTimeSeconds;
+let currentSpawnRateMs = DIFFICULTY_SETTINGS[selectedDifficulty].spawnRateMs;
+let spawnIntervalId;
+let timerIntervalId;
+
+function applyDifficultySettings() {
+  selectedDifficulty = difficultySelect?.value || 'medium';
+  const settings = DIFFICULTY_SETTINGS[selectedDifficulty] || DIFFICULTY_SETTINGS.medium;
+
+  currentGoalCans = settings.goalCans;
+  timeLeft = settings.startTimeSeconds;
+  currentSpawnRateMs = settings.spawnRateMs;
+
+  if (instructionsEl) {
+    instructionsEl.textContent = `Collect ${currentGoalCans} items to complete the game!`;
+  }
+}
+
+// Build a clean 3x3 grid.
+function createGrid() {
+  grid.innerHTML = '';
+
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    grid.appendChild(cell);
+  }
+}
+
+// Keep score and timer updates in one place.
+function updateStatsUI() {
+  scoreEl.textContent = score;
+  timerEl.textContent = timeLeft;
+}
+
+function hideEndMessage() {
+  endMessageEl.textContent = '';
+  endMessageHolderEl.style.display = 'none';
+}
+
+function showEndMessage(didWin) {
+  endMessageEl.textContent = didWin
+    ? 'You win! Great Job Collecting The Cans!'
+    : 'You lose! Better Luck Next Time!';
+
+  endMessageHolderEl.style.display = 'flex';
+}
+
+// Animate can removal and then remove from the DOM.
 function fadeOutWaterCan(waterCanElement) {
-  if (!waterCanElement) return;
-  if (waterCanElement.classList.contains('fade-out')) return;
+  if (!waterCanElement || waterCanElement.classList.contains('fade-out')) return;
 
   waterCanElement.classList.add('fade-out');
 
@@ -16,38 +90,29 @@ function fadeOutWaterCan(waterCanElement) {
     const wrapper = waterCanElement.closest('.water-can-wrapper');
     if (wrapper) {
       wrapper.remove();
-    } else {
-      waterCanElement.remove();
+      return;
     }
+
+    waterCanElement.remove();
   }, 250);
 }
 
-// Creates the 3x3 game grid where items will appear
-function createGrid() {
-  const grid = document.querySelector('.game-grid');
-  grid.innerHTML = ''; // Clear any existing grid cells
-  for (let i = 0; i < 9; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'grid-cell'; // Each cell represents a grid square
-    grid.appendChild(cell);
-  }
+function clearAllWaterCans() {
+  const waterCans = document.querySelectorAll('.water-can');
+  waterCans.forEach(fadeOutWaterCan);
 }
 
-// Ensure the grid is created when the page loads
-createGrid();
-
-// Spawns a new item in a random grid cell
 function spawnWaterCan() {
-  if (!gameActive) return; // Stop if the game is not active
+  if (!isGameRunning) return;
+
   const cells = document.querySelectorAll('.grid-cell');
-  
-  // Clear all cells before spawning a new water can
-  cells.forEach(cell => (cell.innerHTML = ''));
+  cells.forEach((cell) => {
+    cell.innerHTML = '';
+  });
 
-  // Select a random cell from the grid to place the water can
-  const randomCell = cells[Math.floor(Math.random() * cells.length)];
+  const randomIndex = Math.floor(Math.random() * cells.length);
+  const randomCell = cells[randomIndex];
 
-  // Use a template literal to create the wrapper and water-can element
   randomCell.innerHTML = `
     <div class="water-can-wrapper">
       <div class="water-can"></div>
@@ -55,55 +120,64 @@ function spawnWaterCan() {
   `;
 }
 
-// Score System
-const score = document.getElementById('current-cans');
+function endGame(didWin) {
+  isGameRunning = false;
+  clearInterval(spawnIntervalId);
+  clearInterval(timerIntervalId);
 
-document.querySelector('.game-grid').addEventListener('click', function(event) {
+  showEndMessage(didWin);
+  clearAllWaterCans();
+}
+
+function onGridClick(event) {
+  if (!isGameRunning) return;
   if (!event.target.classList.contains('water-can')) return;
+
   fadeOutWaterCan(event.target);
-  currentScore += 1;
-  score.textContent = currentScore;
+  score += 1;
+  updateStatsUI();
 
-  let cangoal = 20;
-  if (currentScore >= cangoal) {
-    endGame();
+  if (score >= currentGoalCans) {
+    endGame(true);
   }
-});
+}
 
-// Initializes and starts a new game
-function startGame() {
-
-  if (gameActive) return; // Prevent starting a new game if one is already active
-  gameActive = true;
-
-  timeLeft = 30;
-  timer.textContent = timeLeft;
-  currentScore = 0;
-  score.textContent = currentScore;
-
-  createGrid(); // Set up the game grid
-  spawnInterval = setInterval(spawnWaterCan, 1000); // Spawn water cans every second
-
-  timerInterval = setInterval(() => {
+function startTimer() {
+  timerIntervalId = setInterval(() => {
     timeLeft -= 1;
-    timer.textContent = timeLeft;
+    updateStatsUI();
 
     if (timeLeft <= 0) {
-      endGame();
+      endGame(score >= currentGoalCans);
     }
-    
   }, 1000);
-
 }
 
-function endGame() {
-  gameActive = false; // Mark the game as inactive
-  clearInterval(spawnInterval); // Stop spawning water cans
-  clearInterval(timerInterval); // Stop timer countdown
+function startGame() {
+  if (isGameRunning) return;
 
-  const waterCans = document.querySelectorAll('.water-can');
-  waterCans.forEach(fadeOutWaterCan);
+  applyDifficultySettings();
+  isGameRunning = true;
+  score = 0;
+
+  hideEndMessage();
+  updateStatsUI();
+  createGrid();
+
+  spawnWaterCan();
+  spawnIntervalId = setInterval(spawnWaterCan, currentSpawnRateMs);
+  startTimer();
 }
 
-// Set up click handler for the start button
-document.getElementById('start-game').addEventListener('click', startGame);
+// Initial setup.
+applyDifficultySettings();
+createGrid();
+updateStatsUI();
+
+grid.addEventListener('click', onGridClick);
+startButton.addEventListener('click', startGame);
+difficultySelect.addEventListener('change', () => {
+  if (isGameRunning) return;
+  applyDifficultySettings();
+  updateStatsUI();
+});

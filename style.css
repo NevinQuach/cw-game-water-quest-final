@@ -61,7 +61,6 @@ body {
   justify-content: center;
   background-color: #f5f5f5;
   border-radius: 10px;
-  
 }
 
 .game-instructions {
@@ -78,7 +77,6 @@ body {
   justify-content: space-around;
   background-color: #f5f5f5;
   border-radius: 10px;
-  
 }
 
 .statsholder p {
@@ -87,7 +85,60 @@ body {
   color: #333;
   font-family: Proxima Nova, Avenir, sans-serif;
   padding-top: 10px;
-  padding-bottom: 10px;}
+  padding-bottom: 10px;
+}
+
+/* End Game Message */
+.endgamemessageholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: none;
+}
+
+#endgamemessage {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  font-family: Proxima Nova, Avenir, sans-serif;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Difficulty Selection */
+.difficultyselection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.difficultyselection label {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  font-family: Proxima Nova, Avenir, sans-serif;
+  padding-bottom: 10px;
+}
+
+select {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  font-family: Proxima Nova, Avenir, sans-serif;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 10px;
+}
 
 /* Game Grid */
 .game-grid {
@@ -118,8 +169,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80px;
-  height: 80px;
+  width: 110px;
+  height: 110px;
   /* Ensure the wrapper is properly centered */
 }
 
@@ -132,14 +183,14 @@ body {
   background-position: center;
   cursor: pointer;
   border-radius: 10px;
-  animation: popUp 0.25s cubic-bezier(0.17, 0.67, 0.34, 2);
+  animation: popUp 0.50s cubic-bezier(0.1, 0.1, 0.1, 2);
+  transition: opacity 0.50s ease, transform 0.50s ease;
   transform-origin: center; /* Ensure scaling happens from the center */
-  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .water-can.fade-out {
   opacity: 0;
-  transform: scale(0.75);
+  transform: scale(0);
   pointer-events: none;
 }
 
@@ -220,22 +271,18 @@ button {
     font-size: 25px;
   }
 
-  .statsholder p, .game-instructions {
+  .statsholder p, .game-instructions, #endgamemessage, .difficultyselection label, select, button {
     font-size: 16px;
   }
 
   .water-can-wrapper {
-  width: 70px;
-  height: 70px;
+  width: 90px;
+  height: 90px;
   }
 
   .game-grid {
   gap: 10px;
   padding: 5px;
-  }
-
-  button {
-    font-size: 16px;
   }
 
   .footer-setup {
@@ -258,17 +305,13 @@ button {
     font-size: 22px;
   }
 
-  .statsholder p, .game-instructions {
+  .statsholder p, .game-instructions, #endgamemessage, .difficultyselection label, select, button {
     font-size: 13px;
   }
 
   .water-can-wrapper {
-  width: 60px;
-  height: 60px;
-  }
-
-  button {
-    font-size: 13px;
+  width: 70px;
+  height: 70px;
   }
 
   .footer-content a, .footer-content p, .footer-content h1 {
