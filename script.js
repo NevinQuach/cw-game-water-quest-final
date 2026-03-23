@@ -5,6 +5,23 @@ let gameActive = false;      // Tracks if game is currently running
 let spawnInterval;          // Holds the interval for spawning items
 let timerInterval;          // Holds the interval for timer countdown
 
+// Water can fade-out animation and removal
+function fadeOutWaterCan(waterCanElement) {
+  if (!waterCanElement) return;
+  if (waterCanElement.classList.contains('fade-out')) return;
+
+  waterCanElement.classList.add('fade-out');
+
+  setTimeout(() => {
+    const wrapper = waterCanElement.closest('.water-can-wrapper');
+    if (wrapper) {
+      wrapper.remove();
+    } else {
+      waterCanElement.remove();
+    }
+  }, 250);
+}
+
 // Creates the 3x3 game grid where items will appear
 function createGrid() {
   const grid = document.querySelector('.game-grid');
@@ -43,6 +60,7 @@ const score = document.getElementById('current-cans');
 
 document.querySelector('.game-grid').addEventListener('click', function(event) {
   if (!event.target.classList.contains('water-can')) return;
+  fadeOutWaterCan(event.target);
   currentScore += 1;
   score.textContent = currentScore;
 
@@ -82,6 +100,9 @@ function endGame() {
   gameActive = false; // Mark the game as inactive
   clearInterval(spawnInterval); // Stop spawning water cans
   clearInterval(timerInterval); // Stop timer countdown
+
+  const waterCans = document.querySelectorAll('.water-can');
+  waterCans.forEach(fadeOutWaterCan);
 }
 
 // Set up click handler for the start button

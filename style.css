@@ -132,8 +132,15 @@ body {
   background-position: center;
   cursor: pointer;
   border-radius: 10px;
-  animation: popUp 0.5s cubic-bezier(0.17, 0.67, 0.34, 2);
+  animation: popUp 0.25s cubic-bezier(0.17, 0.67, 0.34, 2);
   transform-origin: center; /* Ensure scaling happens from the center */
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.water-can.fade-out {
+  opacity: 0;
+  transform: scale(0.75);
+  pointer-events: none;
 }
 
 @keyframes popUp {
